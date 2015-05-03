@@ -155,6 +155,7 @@ public class Mail implements Serializable {
     public void setCopyTo(String copyTo) {
         this.copyTo = copyTo;
     }    
+
     //equals & hashcode
     
     @Override
