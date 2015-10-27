@@ -154,46 +154,6 @@ public class Mail implements Serializable {
 
     public void setCopyTo(String copyTo) {
         this.copyTo = copyTo;
-    }    
-
-    //equals & hashcode
-    
-    @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 73 * hash + this.id;
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if(this == obj){
-            return true;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Mail other = (Mail) obj;
-        boolean isEquals = date.equals(other.date);
-        if(to == null)
-        	isEquals &= other.to == null;
-        else
-        	isEquals &= to.equals(other.to);
-        isEquals &= from.equals(other.from);
-        if(subject == null)
-        	isEquals &= other.subject == null;
-        else
-        	isEquals &= subject.equals(other.subject);
-        if(priority == null)
-        	isEquals &= other.priority == null;
-        else
-        	isEquals &= priority.equals(other.priority);
-        //isEquals &= body.equals(other.body);
-        //isEquals &= copyTo.equals(other.copyTo);
-        return isEquals;
     }
 
     @Override

@@ -44,11 +44,15 @@ import network.messageFramework.FrameworkMessage;
 import com.sun.mail.imap.IMAPFolder;
 
 import cookie.swipe.application.CookieSwipeApplication;
+import cookie.swipe.application.SystemSettings;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
 import errorMessage.CodeError;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
@@ -67,6 +71,7 @@ import javax.swing.JOptionPane;
 public class MailAccount implements ConnectionListener, MessageChangedListener, MessageCountListener, FolderListener {
 
     public static final String ALL = "Tous";
+    public static final String ROOT_CACHE_DIR = "ROOT_CACHE_DIRECTORY";
 
     // Variable membre
     private int id;
@@ -82,6 +87,8 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     private MimeBodyPart messageBodyPart;
     private String defaultFolderName;
     private volatile boolean isReady = false;
+    private CacheManager cacheManager;
+    private String mailAccountPath;
 
     // Constructeur
     /**
@@ -92,6 +99,14 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         this.folderNames = new ArrayList<>();
         this.attachments = new ArrayList<>();
         this.folderListModels = new HashMap<>();
+        cacheManager = new CacheManager();
+        mailAccountPath = createCachePath();
+    }
+    
+    private String createCachePath() {
+        String rootPath = (String) 
+                CookieSwipeApplication.getApplication().getParam(ROOT_CACHE_DIR);
+        return rootPath + SystemSettings.SEPARATOR + address;
     }
 
     /**
@@ -504,8 +519,11 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     }
 
     public void addToListOfmail(String folderName, Message message) throws MessagingException {
-        if (!isInBlackList(message)) 
+        if (!isInBlackList(message)) {
             folderListModels.get(folderName).add(message);
+            cacheManager.storeMessage(message);
+        }
+        
     }
 
     public void removeToListOfmail(String folderName, Message message) {
@@ -515,13 +533,6 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, null, ex);
         }
         folderListModels.get(folderName).remove(message);
-    }
-
-    public void addToListOfmail(String folderName, List<Message> listOfmail) throws MessagingException {
-        for(Message message : listOfmail) {
-            if(!isInBlackList(message))
-                folderListModels.get(folderName).add(message);
-        }
     }
 
     public void addToListOfmail(String folderName, Message[] listOfmail) throws MessagingException {
@@ -557,6 +568,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
 
     @Override
     public void messagesAdded(MessageCountEvent event) {
+        System.out.println("added");
         IMAPFolder f = (IMAPFolder) event.getSource();
 
         Message[] messages = event.getMessages();
@@ -682,6 +694,33 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             } catch (MessagingException ex) {
                 Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+    }
+
+    public class CacheManager {
+        
+        public void storeMessage(Message message) {
+            try {
+                if(isStored(message)) 
+                    return;
+                Path dirName = getCacheFor(message);
+                if(!Files.exists(dirName)) {
+                    Files.createDirectories(dirName);
+                }
+                System.out.println(dirName.toString());
+                Files.list(dirName).findFirst();
+            }
+            catch(Exception ex) {
+                Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, "ChacheManager Exception", ex);
+            }
+        }
+
+        private Path getCacheFor(Message message) throws IOException {
+            return Paths.get( mailAccountPath, message.getFolder().getName() );
+        }
+
+        private boolean isStored(Message message) {
+            return false;
         }
     }
 
