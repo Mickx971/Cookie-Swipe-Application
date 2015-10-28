@@ -4,6 +4,7 @@ package cookie.swipe.application;
 import java.util.HashMap;
 
 import javax.swing.UnsupportedLookAndFeelException;
+import model.MailAccount;
 
 import model.User;
 import module.ihm.LoginFrameInitializer;
@@ -36,6 +37,7 @@ public class CookieSwipeApplication {
     private void start() {
     	initLookAndFeel();       
         setParam("FolderManager", new FolderManager());
+        setParam(MailAccount.ROOT_CACHE_DIR, "/Users/mickx/Desktop");
         LoginJFrame loginFrame = new LoginJFrame();
         this.mainFrame = loginFrame;
         new LoginFrameInitializer(loginFrame).execute();

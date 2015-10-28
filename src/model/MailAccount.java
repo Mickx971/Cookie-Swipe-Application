@@ -48,7 +48,6 @@ import cookie.swipe.application.SystemSettings;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
 import errorMessage.CodeError;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,6 +58,7 @@ import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.Flags;
 import javax.mail.Multipart;
+import javax.mail.UIDFolder;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
@@ -100,7 +100,6 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         this.attachments = new ArrayList<>();
         this.folderListModels = new HashMap<>();
         cacheManager = new CacheManager();
-        mailAccountPath = createCachePath();
     }
     
     private String createCachePath() {
@@ -463,6 +462,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             return CodeError.FAILLURE;
         }
         this.address = address;
+        mailAccountPath = createCachePath();
         return CodeError.SUCESS;
     }
 
@@ -704,23 +704,32 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
                 if(isStored(message)) 
                     return;
                 Path dirName = getCacheFor(message);
-                if(!Files.exists(dirName)) {
-                    Files.createDirectories(dirName);
-                }
-                System.out.println(dirName.toString());
-                Files.list(dirName).findFirst();
+                Files.createDirectories(dirName);
+                Path contentDir = Paths.get(dirName.toString(), "content");
+                Path attachment = Paths.get(dirName.toString(), "attachment");
+                Files.createDirectory(contentDir);
+                Files.createDirectory(attachment);
+                
             }
             catch(Exception ex) {
                 Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, "ChacheManager Exception", ex);
             }
         }
-
-        private Path getCacheFor(Message message) throws IOException {
-            return Paths.get( mailAccountPath, message.getFolder().getName() );
+        
+        private String getMessageId(Message message) throws MessagingException {
+            UIDFolder uidf = (UIDFolder) message.getFolder();
+            long msgId = uidf.getUID(message);
+            return String.valueOf(msgId);
         }
 
-        private boolean isStored(Message message) {
-            return false;
+        private Path getCacheFor(Message message) throws Exception {
+            String msgId = getMessageId(message);
+            return Paths.get( mailAccountPath, message.getFolder().getName(), msgId);
+        }
+
+        private boolean isStored(Message message) throws Exception {
+            Path dirPath = getCacheFor(message);
+            return Files.exists(dirPath);
         }
     }
 
