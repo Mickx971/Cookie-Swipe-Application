@@ -25,6 +25,7 @@ import view.component.CookieSwipeTree;
 import cookie.swipe.application.CookieSwipeApplication;
 import java.awt.Toolkit;
 import java.io.File;
+import model.CustomMessage;
 import view.component.CookieSwipeColor;
 
 public class MainCSFrame extends CookieSwipeFrame implements IJFrame, ListMailAccountListener {
@@ -32,7 +33,7 @@ public class MainCSFrame extends CookieSwipeFrame implements IJFrame, ListMailAc
 	private static final long serialVersionUID = 8736726751871593606L;
 	
 	private CookieSwipeTree cookieSwipeTreeAccountMail;
-    private CookieSwipeList<Message> jListMail;
+    private CookieSwipeList<CustomMessage> jListMail;
     private JScrollPane jScrollPane1;
     private JScrollPane jScrollPaneMailList;
     private CookieSwipePanel spritePanel;
@@ -149,7 +150,7 @@ public class MainCSFrame extends CookieSwipeFrame implements IJFrame, ListMailAc
 		cookieSwipeButtonRefresh.setText(CookieSwipeButtonSprite.REFRESH);
 		cookieSwipeButtonToBlacklist.setText(CookieSwipeButtonSprite.TO_BLACKLIST);
 	
-		jListMail = new view.component.CookieSwipeList<Message>();
+		jListMail = new view.component.CookieSwipeList<CustomMessage>();
 	    
 		cookieSwipeTreeAccountMail = new CookieSwipeTree();
 	

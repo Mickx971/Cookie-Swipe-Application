@@ -40,6 +40,7 @@ import controller.ActionName;
 import controller.Dispatcher;
 import cookie.swipe.application.CookieSwipeApplication;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
+import model.CustomMessage;
 import view.component.CookieSwipeButtonSprite;
 
 /**
@@ -105,7 +106,6 @@ public class MainFrameInitializer extends AbstractIHMAction {
                     if(lastSelection.getUserObject().equals(mc)) {
                         folderName = mc.getDefaultFolderName();
                     }
-                    System.out.println(mc.isReady());
                     if (mc != null && folderName != null && !folderName.isEmpty() && mc.isReady()) {
                         folderManager.retrieveNextMailsFor(mc, folderName);
                     }
@@ -200,7 +200,7 @@ public class MainFrameInitializer extends AbstractIHMAction {
             CookieSwipeApplication.getApplication().setParam("mailAccountSelected", firstMailAccount);
         }
 
-        myTree.addMouseListener(new TreeMouseListener(myTree, (JList<Message>) hsJcomponent.get("jListMail")));
+        myTree.addMouseListener(new TreeMouseListener(myTree, (JList<CustomMessage>) hsJcomponent.get("jListMail")));
     }
 
     private void initButton() {
@@ -287,16 +287,16 @@ public class MainFrameInitializer extends AbstractIHMAction {
     }
 
     private void setSelectedMail(FocusEvent e) {
-        JList<Message> jListMail = (JList<Message>) hsJcomponent.get("jListMail");
+        JList<CustomMessage> jListMail = (JList<CustomMessage>) hsJcomponent.get("jListMail");
         CookieSwipeApplication.getApplication().setParam("selectedMail", jListMail.getSelectedValue());
     }
 
     private class TreeMouseListener extends MouseAdapter {
 
         private CookieSwipeTree myTree = null;
-        private JList<Message> jListMail = null;
+        private JList<CustomMessage> jListMail = null;
 
-        public TreeMouseListener(CookieSwipeTree myTree, JList<Message> jListMail) {
+        public TreeMouseListener(CookieSwipeTree myTree, JList<CustomMessage> jListMail) {
             this.myTree = myTree;
             this.jListMail = jListMail;
 
@@ -308,7 +308,7 @@ public class MainFrameInitializer extends AbstractIHMAction {
                     if (e.getClickCount() == 2) { // double click
                         int index = theList.locationToIndex(e.getPoint());
                         if (index >= 0) {
-                            Message message = (Message) theList.getModel().getElementAt(index);
+                            CustomMessage message = (CustomMessage) theList.getModel().getElementAt(index);
                             CookieSwipeApplication.getApplication().setParam("selectedMail", message);
                             Dispatcher dispatcher = new Dispatcher();
                             dispatcher.readMailAction();

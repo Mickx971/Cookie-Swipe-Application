@@ -527,7 +527,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
 
     public void addToListOfmail(String folderName, Message message) throws MessagingException {
         if (!isInBlackList(message)) {
-            folderListModels.get(folderName).add(message);
+            folderListModels.get(folderName).add(new CustomMessage(message, this));
             cacheManager.storeMessage(message);
         }
         
@@ -545,7 +545,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     public void addToListOfmail(String folderName, Message[] listOfmail) throws MessagingException {
         for(Message message : listOfmail) {
             if(!isInBlackList(message))
-                folderListModels.get(folderName).add(message);
+                folderListModels.get(folderName).add(new CustomMessage(message, this));
         }
     }
 
@@ -735,19 +735,11 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             return content;
         }
         
-        private boolean partIsTextual(BodyPart bodyPart) throws MessagingException {
-            String disposition = bodyPart.getDisposition();
-            boolean res = !bodyPart.getContentType().contains("image");
-            res &= disposition == null || !disposition.equalsIgnoreCase("ATTACHMENT");
-            return res;
-        }
-        
         private String getTextContentMessageFormMultipart(Multipart multipart) throws Exception {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < multipart.getCount(); ++i) {
                 BodyPart bodyPart = multipart.getBodyPart(i);
                 String content = bodyPart.isMimeType("text/html") ? (String) bodyPart.getContent() : null;
-                System.out.println(content);
                 if(content != null && !content.isEmpty())
                     sb.append(content);
             }

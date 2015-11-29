@@ -40,6 +40,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import model.CustomMessage;
 import model.MailAccount;
 import model.User;
 import module.backoffice.CreateCSAccountAction;
@@ -192,7 +193,7 @@ public class Dispatcher implements ActionListener {
     public void deleteMailAction() {
         MailAccount mailAccount = (MailAccount) CookieSwipeApplication.getApplication().getParam("mailAccountSelected");
         mailAccount.removeToListOfmail((String)CookieSwipeApplication.getApplication().getParam("folderName"),
-                                        (Message) CookieSwipeApplication.getApplication().getParam("selectedMail"));
+                                        (CustomMessage) CookieSwipeApplication.getApplication().getParam("selectedMail"));
     }
 
     public void selectMailAction() { // ne sert a rien
@@ -200,26 +201,26 @@ public class Dispatcher implements ActionListener {
     }
 
     public void readMailAction() {
-        Message message = (Message) CookieSwipeApplication.getApplication().getParam("selectedMail");
+        Object message = CookieSwipeApplication.getApplication().getParam("selectedMail");
         if (message != null) {
             new ReadMailAction().execute(message);
         }
     }
     
     public void replyAction() {
-        Message message = (Message) CookieSwipeApplication.getApplication().getParam("selectedMail");
+        Object message = CookieSwipeApplication.getApplication().getParam("selectedMail");
         if(message != null)
             new MailAction().execute("reply", message);
     }
     
     public void replyAllAction() {
-        Message message = (Message) CookieSwipeApplication.getApplication().getParam("selectedMail");
+        Object message = CookieSwipeApplication.getApplication().getParam("selectedMail");
         if(message != null)
             new MailAction().execute("replyAll", message);
     }
     
     public void forwardAction() {
-        Message message = (Message) CookieSwipeApplication.getApplication().getParam("selectedMail");
+        Object message = CookieSwipeApplication.getApplication().getParam("selectedMail");
         if(message != null)
             new MailAction().execute("forward", message);
     }

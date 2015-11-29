@@ -10,10 +10,10 @@ import java.util.PriorityQueue;
 import java.util.Vector;
 import java.util.function.Predicate;
 import javax.mail.Address;
-import javax.mail.Message;
 import javax.mail.MessagingException;
+import model.CustomMessage;
 
-public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message> {
+public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<CustomMessage> {
 	
 	private static final long serialVersionUID = 3853067076820469495L;
 
@@ -23,11 +23,11 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 		CHANGED
 	}
 	
-	public ObservableLinkedHashSetPriorityQueue(Comparator<? super Message> comparator) {
-		this(new Vector<Message>(),comparator);
+	public ObservableLinkedHashSetPriorityQueue(Comparator<? super CustomMessage> comparator) {
+		this(new Vector<CustomMessage>(),comparator);
 	}
 	
-	public ObservableLinkedHashSetPriorityQueue(Collection<Message> collection, Comparator<? super Message> comparator) {
+	public ObservableLinkedHashSetPriorityQueue(Collection<CustomMessage> collection, Comparator<? super CustomMessage> comparator) {
 		super(comparator);
 		addAll(collection);
 		obs = new Vector<>();
@@ -96,7 +96,7 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
     		return -1;
     	
     	int index = -1;
-    	Iterator<Message> it = iterator();
+    	Iterator<CustomMessage> it = iterator();
     	while(it.hasNext()) {
     		if(!it.next().equals(e)) index++;
     		else break;
@@ -117,7 +117,7 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
 	
 	@Override
-	public boolean add(Message e) {
+	public boolean add(CustomMessage e) {
 		boolean b = false;
 		synchronized (this) {
 			b = super.add(e);
@@ -126,7 +126,7 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
 	
 	@Override
-	public boolean offer(Message e) {
+	public boolean offer(CustomMessage e) {
 		if (contains(e)) return false;
 		setChanged();
 		EventData data = new EventData(ObservableLinkedHashSetPriorityQueueEvent.ADDED, size(), size(), e);
@@ -135,8 +135,8 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
 	
 	@Override
-	public Message poll() {
-		Message t = null;
+	public CustomMessage poll() {
+		CustomMessage t = null;
 		synchronized (this) {
 			t = super.poll();
 			if(t != null) {
@@ -180,7 +180,7 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
 	
 	@Override
-	public boolean removeIf(Predicate<? super Message> predic) {
+	public boolean removeIf(Predicate<? super CustomMessage> predic) {
 		boolean hasChanged = false;
 		synchronized (this) {
 			List<Object> all = toList();
@@ -230,8 +230,8 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
 	
 	@Override
-	public Message remove() {
-		Message e = null;
+	public CustomMessage remove() {
+		CustomMessage e = null;
 		synchronized (this) {
 			if(size() != 0) {
 				setChanged();
@@ -244,8 +244,8 @@ public class ObservableLinkedHashSetPriorityQueue extends PriorityQueue<Message>
 	}
         
         public void clearMailFrom(String sender) throws MessagingException {
-            Iterator<Message> it = iterator();
-            Message message;
+            Iterator<CustomMessage> it = iterator();
+            CustomMessage message;
             while(it.hasNext()) {
                 message = it.next();
                 for(Address address : message.getFrom()) {

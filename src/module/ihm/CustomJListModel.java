@@ -2,14 +2,14 @@ package module.ihm;
 
 import java.util.Iterator;
 
-import javax.mail.Message;
 import javax.swing.DefaultListModel;
 
 import cookie.swipe.application.utils.EventData;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
+import model.CustomMessage;
 
-public class CustomJListModel extends DefaultListModel<Message> implements LinkedHashSetPriorityQueueObserver {
+public class CustomJListModel extends DefaultListModel<CustomMessage> implements LinkedHashSetPriorityQueueObserver {
 
 	private static final long serialVersionUID = 8376153077264836337L;
 	private ObservableLinkedHashSetPriorityQueue list;
@@ -26,10 +26,10 @@ public class CustomJListModel extends DefaultListModel<Message> implements Linke
 	}
 
 	@Override
-	public Message getElementAt(int index) {
+	public CustomMessage getElementAt(int index) {
 		if(getSize() <= index || index < 0) throw new ArrayIndexOutOfBoundsException(); 
-		Iterator<Message> it = list.iterator();
-		Message element = null;
+		Iterator<CustomMessage> it = list.iterator();
+		CustomMessage element = null;
 		while(index-- >= 0 && it.hasNext()) {
 			element = it.next();
 		}
