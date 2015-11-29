@@ -48,7 +48,7 @@ public class DeliverySystem {
 
     private DeliverySystem() {
         LOGGER = Logger.getLogger(DeliverySystem.class.getName());
-        slaveExecutor = Executors.newFixedThreadPool(4);
+        slaveExecutor = Executors.newFixedThreadPool(1);
         completionService = new ExecutorCompletionService<>(slaveExecutor);
         futures = new ConcurrentLinkedQueue<>();
         matcher = new HashMap<>();
@@ -123,10 +123,10 @@ public class DeliverySystem {
                 isLaunched = true;
                 while (!shouldStop) {
                     try {
+                        Thread.sleep(200);
                         if (!futures.isEmpty()) {
                             onRecieveResponse(completionService.take());
                         }
-                        Thread.sleep(100);
                     } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Erreur :", e);
                     }

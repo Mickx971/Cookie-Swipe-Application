@@ -49,6 +49,7 @@ import org.jsoup.Jsoup;
 import view.ReadMailCSFrame;
 import view.component.CookieSwipeButtonAttach;
 import view.component.CookieSwipeTextArea;
+import view.component.CookieSwipeWebView;
 
 /**
  * @author Yehouda
@@ -143,7 +144,7 @@ public class ReadMailAction implements IAction {
                         output.write(buffer, 0, bytesRead);
                     }                  
                 }
-                CookieSwipeTextArea area = frame.getjTextAreaMail();
+                CookieSwipeWebView area = frame.getjTextAreaMail();
                 if (area != null) {
                     ImagePanel img = new ImagePanel(Arrays.toString(buffer));
                     img.paintComponent(area.getGraphics());
@@ -179,7 +180,7 @@ public class ReadMailAction implements IAction {
                     try {
                         boolean b = receivedMessage.get();
                         if (b) {
-                            CookieSwipeTextArea area = frame.getjTextAreaMail();
+                            CookieSwipeWebView area = frame.getjTextAreaMail();
                             area.repaint();
                             area.revalidate();
                         }

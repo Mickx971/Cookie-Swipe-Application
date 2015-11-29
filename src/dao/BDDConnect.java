@@ -61,7 +61,7 @@ public class BDDConnect {
                 return null;
             }
             try {
-                connexion = DriverManager.getConnection(conf[0] + "/" + conf[1], conf[2], "TOTO");
+                connexion = DriverManager.getConnection(conf[0] + "/" + conf[1], conf[2], conf[3]);
             } catch (SQLException e) {
                 Logger.getLogger("BDDConnect").log(Level.SEVERE, "Where is your MySQL JDBC Driver 2?", e);
                 return null;

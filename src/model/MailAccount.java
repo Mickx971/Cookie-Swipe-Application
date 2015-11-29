@@ -48,6 +48,9 @@ import cookie.swipe.application.SystemSettings;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
 import errorMessage.CodeError;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -56,13 +59,17 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.Address;
+import javax.mail.BodyPart;
 import javax.mail.Flags;
 import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.UIDFolder;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import javax.swing.JOptionPane;
+import module.backoffice.ReadMailAction;
+import static module.backoffice.ReadMailAction.getText;
 
 /**
  *
@@ -709,10 +716,74 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
                 Path attachment = Paths.get(dirName.toString(), "attachment");
                 Files.createDirectory(contentDir);
                 Files.createDirectory(attachment);
-                
+                serializeText(getMessageText(message), contentDir);
+                downLoadMessageAttachements(message, attachment);
             }
             catch(Exception ex) {
                 Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, "ChacheManager Exception", ex);
+            }
+        }
+        
+        private String getMessageText(Message message) throws Exception {
+            String content = null;
+            if(message.getContent() instanceof Multipart) {
+                content = getTextContentMessageFormMultipart((Multipart)message.getContent());
+            }
+            else {
+                content = (String) message.getContent(); 
+            }
+            return content;
+        }
+        
+        private boolean partIsTextual(BodyPart bodyPart) throws MessagingException {
+            String disposition = bodyPart.getDisposition();
+            boolean res = !bodyPart.getContentType().contains("image");
+            res &= disposition == null || !disposition.equalsIgnoreCase("ATTACHMENT");
+            return res;
+        }
+        
+        private String getTextContentMessageFormMultipart(Multipart multipart) throws Exception {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < multipart.getCount(); ++i) {
+                BodyPart bodyPart = multipart.getBodyPart(i);
+                String content = bodyPart.isMimeType("text/html") ? (String) bodyPart.getContent() : null;
+                System.out.println(content);
+                if(content != null && !content.isEmpty())
+                    sb.append(content);
+            }
+            return sb.toString();
+        }
+        
+        public void download(BodyPart bodyPart, Path path) throws Exception {
+            InputStream is = bodyPart.getInputStream();
+            path = path.resolve(bodyPart.getFileName());
+            File file = Files.createFile(path).toFile();
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                byte[] buf = new byte[4096];
+                int bytesRead;
+                while((bytesRead = is.read(buf))!=-1) {
+                    fos.write(buf, 0, bytesRead);
+                }
+            }
+        }
+        
+        private void serializeText(String messageText, Path contentDir) throws Exception {
+            Path path = contentDir.resolve("messageContent.html");
+            PrintWriter printer = new PrintWriter(Files.createFile(path).toFile());
+            printer.println(messageText);
+        }
+
+        private void downLoadMessageAttachements(Message message, Path attachmentPath) throws Exception {
+            if(message.getContent() instanceof Multipart) {
+                multipart = (Multipart) message.getContent();
+                for (int i = 0; i < multipart.getCount(); ++i) {
+                    BodyPart bodyPart = multipart.getBodyPart(i);
+                    if (Part.ATTACHMENT.equalsIgnoreCase(bodyPart.getDisposition())
+                            && !bodyPart.getFileName().trim().isEmpty()) {
+                        download(bodyPart, attachmentPath);
+                    }
+                }
             }
         }
         
