@@ -39,7 +39,7 @@ import cookie.swipe.application.CookieSwipeApplication;
 
 public class FolderManager {
 
-    private static final int preloadedMessagesCount = 30;
+    private static final int preloadedMessagesCount = 5;
     private Map<IMAPFolder, Entry<Store, MailAccount>> folders;
     private Map<IMAPFolder, Integer> messagesCount;
     private ScheduledExecutorService synchronizer;

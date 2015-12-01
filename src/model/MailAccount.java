@@ -48,10 +48,13 @@ import cookie.swipe.application.SystemSettings;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
 import errorMessage.CodeError;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,8 +71,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import javax.swing.JOptionPane;
-import module.backoffice.ReadMailAction;
-import static module.backoffice.ReadMailAction.getText;
 
 /**
  *
@@ -704,7 +705,20 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         }
     }
 
+    public String getStoredContent(CustomMessage message) {
+        try {
+            String content = cacheManager.getContentFor(message);
+            if(!content.isEmpty()) {
+                System.out.println(content);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "ERROR";
+    }
+
     public class CacheManager {
+        private String CONTENT_FILE_NAME = "messageContent.html";
         
         public void storeMessage(Message message) {
             try {
@@ -736,15 +750,50 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         }
         
         private String getTextContentMessageFormMultipart(Multipart multipart) throws Exception {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder html = new StringBuilder();
+            StringBuilder text = new StringBuilder();
+            
             for (int i = 0; i < multipart.getCount(); ++i) {
+                
                 BodyPart bodyPart = multipart.getBodyPart(i);
-                String content = bodyPart.isMimeType("text/html") ? (String) bodyPart.getContent() : null;
-                if(content != null && !content.isEmpty())
-                    sb.append(content);
+                String htmlContent = getPartContent(bodyPart, "text/html");
+                String textContent = getPartContent(bodyPart, "text/text");
+                
+                if(htmlContent != null && !htmlContent.isEmpty())
+                    html.append(htmlContent);
+                
+                if(textContent != null && !textContent.isEmpty())
+                    text.append(textContent);
             }
-            return sb.toString();
+            
+            if(html.length() != 0)
+                return html.toString();
+            return text.toString();
         }
+        
+    public String getPartContent(Part p, String type) throws MessagingException, IOException {
+        if (p.isMimeType(type)) return (String) p.getContent();
+
+        if (p.isMimeType("multipart/alternative")) {
+            Multipart mp = (Multipart) p.getContent();
+            for (int i = 0; i < mp.getCount(); i++) {
+                Part bp = mp.getBodyPart(i);
+                if (bp.isMimeType("text/*")) {
+                    String text = getPartContent(bp,type);
+                    if(text != null) return text;
+                } 
+                else return getPartContent(bp,type);
+            }
+        } 
+        else if (p.isMimeType("multipart/*")) {
+            Multipart mp = (Multipart) p.getContent();
+            for (int i = 0; i < mp.getCount(); i++) {
+                String s = getPartContent(mp.getBodyPart(i), type);
+                if (s != null) return s;
+            }
+        }
+        return null;
+    }
         
         public void download(BodyPart bodyPart, Path path) throws Exception {
             InputStream is = bodyPart.getInputStream();
@@ -761,9 +810,10 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         }
         
         private void serializeText(String messageText, Path contentDir) throws Exception {
-            Path path = contentDir.resolve("messageContent.html");
+            Path path = contentDir.resolve(CONTENT_FILE_NAME);
             PrintWriter printer = new PrintWriter(Files.createFile(path).toFile());
             printer.println(messageText);
+            printer.close();
         }
 
         private void downLoadMessageAttachements(Message message, Path attachmentPath) throws Exception {
@@ -781,7 +831,11 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         
         private String getMessageId(Message message) throws MessagingException {
             UIDFolder uidf = (UIDFolder) message.getFolder();
-            long msgId = uidf.getUID(message);
+            long msgId = 0;
+            if(message instanceof CustomMessage)
+                msgId = uidf.getUID(((CustomMessage)message).getMessage());
+            else 
+                msgId = uidf.getUID(message);
             return String.valueOf(msgId);
         }
 
@@ -793,6 +847,13 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         private boolean isStored(Message message) throws Exception {
             Path dirPath = getCacheFor(message);
             return Files.exists(dirPath);
+        }
+
+        private String getContentFor(Message message) throws Exception {
+            Path p = getCacheFor(message);
+            p = Paths.get(p.toString(), "content/" + CONTENT_FILE_NAME);
+            byte[] encoded = Files.readAllBytes(p);
+            return new String(encoded, Charset.defaultCharset());
         }
     }
 

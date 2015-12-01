@@ -42,13 +42,13 @@ import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import model.CustomMessage;
 import module.ihm.ReadMailFrameInitializer;
 import network.messageFramework.AbstractSender;
 import network.messageFramework.FrameworkMessage;
 import org.jsoup.Jsoup;
 import view.ReadMailCSFrame;
 import view.component.CookieSwipeButtonAttach;
-import view.component.CookieSwipeTextArea;
 import view.component.CookieSwipeWebView;
 
 /**
@@ -62,7 +62,7 @@ public class ReadMailAction implements IAction {
     @Override
     public boolean execute(Object... object) {
         try {
-            Message message = (Message) object[0];
+            CustomMessage message = (CustomMessage) object[0];
             CookieSwipeApplication application = CookieSwipeApplication.getApplication();
             
             frame = new ReadMailCSFrame();
@@ -74,14 +74,16 @@ public class ReadMailAction implements IAction {
             frame.setCookieSwipeTextFieldTo(getMailFromAddressArray(message.getRecipients(Message.RecipientType.TO)));
             frame.setCookieSwipeTextFieldToCc(getMailFromAddressArray(message.getRecipients(Message.RecipientType.CC)));
             
-            String content = getContentMessage(message);
+            String content = message.getMailAccount().getStoredContent(message);
+            
+            System.out.println(content);
             
             frame.setjTextAreaMail(content);
             if(buttons.size() > 0)
                 frame.setCookieSwipeButtonAttach(buttons);
             application.setFocusFrame(frame);
             return true;
-        } catch (MessagingException | IOException ex) {
+        } catch (MessagingException ex) {
             Logger.getLogger(ReadMailAction.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
