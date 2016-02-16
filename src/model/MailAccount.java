@@ -42,16 +42,17 @@ import network.messageFramework.AbstractSender;
 import network.messageFramework.FrameworkMessage;
 
 import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.IMAPMessage;
 
 import cookie.swipe.application.CookieSwipeApplication;
 import cookie.swipe.application.SystemSettings;
 import cookie.swipe.application.utils.LinkedHashSetPriorityQueueObserver;
 import cookie.swipe.application.utils.ObservableLinkedHashSetPriorityQueue;
 import errorMessage.CodeError;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
@@ -64,6 +65,7 @@ import javax.activation.FileDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Flags;
+import javax.mail.Folder;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.UIDFolder;
@@ -225,12 +227,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     }
 
     public Store getClientConnection() throws MessagingException, Exception {
-        // Get a Properties object
-        Properties props = System.getProperties();
-
-        // Get a Session object
-        Session session = Session.getInstance(props, null);
-        session.setDebug(false);
+        Session session = getSession();
 
         Store store = session.getStore(domain.getStoreProtocol());
 
@@ -238,6 +235,17 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
         store.connect(domain.getServerIn(), address, new Encryption().decrypt(password));
 
         return store;
+    }
+    
+    private Session getSession() {
+        // Get a Properties object
+        Properties props = System.getProperties();
+
+        // Get a Session object
+        Session session = Session.getInstance(props, null);
+        session.setDebug(false);
+        
+        return session;
     }
 
     public Properties getProperties(int i) {
@@ -525,11 +533,16 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     public Mail[] getListOfmail(String folderName) {
         return folderListModels.get(folderName).toArray(new Mail[folderListModels.get(folderName).size()]);
     }
-
+    
     public void addToListOfmail(String folderName, Message message) throws MessagingException {
+        addToListOfmail(folderName, message, true);
+    }
+
+    public void addToListOfmail(String folderName, Message message, boolean addToCache) throws MessagingException {
         if (!isInBlackList(message)) {
             folderListModels.get(folderName).add(new CustomMessage(message, this));
-            cacheManager.storeMessage(message);
+            if(addToCache)
+                cacheManager.storeMessage(message);
         }
         
     }
@@ -707,18 +720,24 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
 
     public String getStoredContent(CustomMessage message) {
         try {
-            String content = cacheManager.getContentFor(message);
-            if(!content.isEmpty()) {
-                System.out.println(content);
-            }
+            return cacheManager.getContentFor(message);
         } catch (Exception ex) {
             Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, null, ex);
         }
         return "ERROR";
     }
 
+    public void readCache() {
+        try {
+            cacheManager.readCache();
+        } catch (IOException ex) {
+            Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, "", ex);
+        }
+    }
+
     public class CacheManager {
         private String CONTENT_FILE_NAME = "messageContent.html";
+        private String JAVAX_MESSAGE = "javaxMessage";
         
         public void storeMessage(Message message) {
             try {
@@ -732,6 +751,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
                 Files.createDirectory(attachment);
                 serializeText(getMessageText(message), contentDir);
                 downLoadMessageAttachements(message, attachment);
+                serializeMessage(message, dirName);
             }
             catch(Exception ex) {
                 Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, "ChacheManager Exception", ex);
@@ -829,9 +849,14 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             }
         }
         
-        private String getMessageId(Message message) throws MessagingException {
-            UIDFolder uidf = (UIDFolder) message.getFolder();
+        private String getMessageId(Message message) throws MessagingException, Exception {
+            Folder folder = message.getFolder();
+            if(!folder.isOpen())
+                folder.open(Folder.READ_WRITE);
+            
+            UIDFolder uidf = (UIDFolder) folder;
             long msgId = 0;
+            
             if(message instanceof CustomMessage)
                 msgId = uidf.getUID(((CustomMessage)message).getMessage());
             else 
@@ -854,6 +879,34 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
             p = Paths.get(p.toString(), "content/" + CONTENT_FILE_NAME);
             byte[] encoded = Files.readAllBytes(p);
             return new String(encoded, Charset.defaultCharset());
+        }
+
+        private void readCache() throws IOException {
+            if(Files.exists(Paths.get(mailAccountPath))) {
+                Files.walk(Paths.get(mailAccountPath)).forEach(filePath -> {
+                    String name = filePath.getName(filePath.getNameCount() - 1).toString();
+                    if (Files.isRegularFile(filePath) && name.equals(JAVAX_MESSAGE)) {
+                        
+                        String folderName = filePath.getName(filePath.getNameCount() - 3).toString();
+                        int uid = Integer.parseInt(filePath.getName(filePath.getNameCount() - 2).toString());
+                        
+                        try (InputStream str = Files.newInputStream(filePath)) {
+                            IMAPMessage message = null;
+                            
+                            //MimeMessage msg = new MimeMessage(getSession(), str);
+                            //addToListOfmail(folderName, msg, false);
+                        } catch (Exception ex) {
+                            Logger.getLogger(MailAccount.class.getName()).log(Level.SEVERE, null, ex);
+                        }                 
+                    }
+                });
+            }
+        }
+
+        private void serializeMessage(Message message, Path dirName) throws IOException, MessagingException {
+            try (OutputStream str = Files.newOutputStream(Paths.get(dirName.toString() + "/" +  JAVAX_MESSAGE))) {
+                message.writeTo(str);
+            }
         }
     }
 

@@ -235,6 +235,8 @@ public class FolderManager {
             Map<IMAPFolder, Integer> lengths = new HashMap<>();
 
             for (IMAPFolder f : folders.keySet()) {
+                MailAccount mailAccount = folders.get(f).getValue();
+                mailAccount.readCache();
                 lengths.put(f, f.getMessageCount());
             }
 

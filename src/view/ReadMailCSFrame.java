@@ -84,20 +84,23 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
         }
     }
 
-    public void setjTextAreaMail(String path) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                BorderPane borderPane = new BorderPane();
-                WebView webComponent = new WebView();
+    public void setjTextAreaMail(final String content) {
+        if(!Platform.isFxApplicationThread()) {
+            Platform.runLater(new Runnable() {
 
-                webComponent.getEngine().load(path);
+                @Override
+                public void run() {
+                    BorderPane borderPane = new BorderPane();
+                    WebView webComponent = new WebView();
 
-                borderPane.setCenter(webComponent);
-                Scene scene = new Scene(borderPane, 450, 450);
-                webView.setScene(scene);
-            }
-        });
+                    webComponent.getEngine().loadContent(content);
+
+                    borderPane.setCenter(webComponent);
+                    Scene scene = new Scene(borderPane, 450, 450);
+                    webView.setScene(scene); 
+                }
+            });
+        }
     }
     
     public void initFrame(){

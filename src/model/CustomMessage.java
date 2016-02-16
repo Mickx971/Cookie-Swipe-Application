@@ -17,6 +17,7 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.internet.MimeMessage;
 import javax.mail.search.SearchTerm;
 
 /**

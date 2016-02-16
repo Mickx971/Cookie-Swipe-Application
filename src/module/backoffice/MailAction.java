@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import model.CustomMessage;
 import model.MailAccount;
 import static module.backoffice.ReadMailAction.getMailFromAddressArray;
 import module.ihm.WriteMailFrameInitializer;
@@ -28,7 +28,7 @@ public class MailAction implements IAction {
     @Override
     public boolean execute(Object... object) {
         String action = (String) object[0];
-        Message message = (Message) object[1];
+        CustomMessage message = (CustomMessage) object[1];
         MailAccount mailAccount = (MailAccount) CookieSwipeApplication.getApplication().getParam("mailAccountSelected");
         String startSubject = "";
         MailCSFrame mailFrame = new MailCSFrame();
@@ -57,12 +57,12 @@ public class MailAction implements IAction {
         return true;
     }
     
-    private String mailTranfer(Message message) throws MessagingException, IOException {
+    private String mailTranfer(CustomMessage message) throws MessagingException, IOException {
         return "\n\n\n----------------------------------------\n"
                 + "From : " + Arrays.toString(message.getFrom()) + "\n"
                 + "To : " + Arrays.toString(message.getRecipients(Message.RecipientType.TO)) + "\n"
                 + "Date : " + message.getReceivedDate() + "\n\n"
-                + ReadMailAction.getContentMessage(message)
+                + message.getMailAccount().getStoredContent(message)
                 + "\n\n";
     }
 }
