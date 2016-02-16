@@ -6,10 +6,6 @@ import java.awt.Dimension;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.List;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebView;
 
 import javax.swing.GroupLayout;
 import javax.swing.JScrollPane;
@@ -20,8 +16,8 @@ import view.component.CookieSwipeColor;
 import view.component.CookieSwipeFrame;
 import view.component.CookieSwipeLabel;
 import view.component.CookieSwipePanel;
+import view.component.CookieSwipeTextArea;
 import view.component.CookieSwipeTextField;
-import view.component.CookieSwipeWebView;
 
 public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
 
@@ -49,7 +45,7 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
    
     private JScrollPane jScrollPane1;
    
-    private CookieSwipeWebView webView;
+    private CookieSwipeTextArea jTextAreaMail;
 
     
     public ReadMailCSFrame() {
@@ -84,23 +80,8 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
         }
     }
 
-    public void setjTextAreaMail(final String content) {
-        if(!Platform.isFxApplicationThread()) {
-            Platform.runLater(new Runnable() {
-
-                @Override
-                public void run() {
-                    BorderPane borderPane = new BorderPane();
-                    WebView webComponent = new WebView();
-
-                    webComponent.getEngine().loadContent(content);
-
-                    borderPane.setCenter(webComponent);
-                    Scene scene = new Scene(borderPane, 450, 450);
-                    webView.setScene(scene); 
-                }
-            });
-        }
+    public void setjTextAreaMail(String jTextAreaMail) {
+        this.jTextAreaMail.setText(jTextAreaMail);
     }
     
     public void initFrame(){
@@ -145,8 +126,8 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
     	
     }
      
-    public CookieSwipeWebView getjTextAreaMail() {
-        return webView;
+    public CookieSwipeTextArea getjTextAreaMail() {
+        return jTextAreaMail;
     }
     
     public void initComponents() {
@@ -180,7 +161,8 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
         cookieSwipeLabelObject = new CookieSwipeLabel();
         
         jScrollPane1 = new JScrollPane();
-        webView = new CookieSwipeWebView();
+        jTextAreaMail = new CookieSwipeTextArea();
+	jTextAreaMail.setEditable(false);
         
         cookieSwipeLabelTo.setText("À :");
         cookieSwipeLabelCc.setText("Cc :");
@@ -189,7 +171,7 @@ public class ReadMailCSFrame extends CookieSwipeFrame implements IJFrame {
 
         //jTextAreaMail.setColumns(20);
         //jTextAreaMail.setRows(5);
-        jScrollPane1.setViewportView(webView);
+        jScrollPane1.setViewportView(jTextAreaMail);
 
     }
     
