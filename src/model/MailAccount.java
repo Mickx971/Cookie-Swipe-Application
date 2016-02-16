@@ -115,7 +115,7 @@ public class MailAccount implements ConnectionListener, MessageChangedListener, 
     private String createCachePath() {
         String rootPath = (String) 
                 CookieSwipeApplication.getApplication().getParam(ROOT_CACHE_DIR);
-        return rootPath + SystemSettings.SEPARATOR + address;
+        return rootPath + SystemSettings.SEPARATOR + "cookiespwipe" + SystemSettings.SEPARATOR + address;
     }
 
     /**

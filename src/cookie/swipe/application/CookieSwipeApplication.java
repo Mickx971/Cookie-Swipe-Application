@@ -37,7 +37,7 @@ public class CookieSwipeApplication {
     private void start() {
     	initLookAndFeel();       
         setParam("FolderManager", new FolderManager());
-        setParam(MailAccount.ROOT_CACHE_DIR, "/Users/mickx/Desktop");
+        setParam(MailAccount.ROOT_CACHE_DIR, getTempFolder());
         LoginJFrame loginFrame = new LoginJFrame();
         this.mainFrame = loginFrame;
         new LoginFrameInitializer(loginFrame).execute();
@@ -114,5 +114,9 @@ public class CookieSwipeApplication {
      */
     public static void main(String[] args){
         CookieSwipeApplication.getApplication().start();
+    }
+
+    private String getTempFolder() {
+        return System.getProperty("java.io.tmpdir");
     }
 }
